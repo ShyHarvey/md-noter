@@ -78,7 +78,7 @@ export const Content = () => {
   return (
     <div className="grid grid-cols-4 gap-2 px-5 pt-5">
       <div className="px-2">
-        <ul className="w-full p-2 menu rounded-box bg-base-100">
+        <ul className="w-full gap-2 p-2 border menu border-accent rounded-box bg-base-100">
           {topics?.map((topic) => (
             <li key={topic.id}>
               <Link
@@ -97,7 +97,7 @@ export const Content = () => {
         <input
           type="text"
           placeholder="New topic"
-          className="w-full input-bordered input input-sm"
+          className="w-full input-bordered input input-accent input-sm"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               createTopic.mutate({

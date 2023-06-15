@@ -1,14 +1,34 @@
 import { signIn, signOut, useSession } from "next-auth/react"
 import Image from "next/image"
+import { useEffect } from "react"
+import { themeChange } from "theme-change"
 
+const themes = ["light", "dark", "cupcake", "bumblebee", "emerald", "corporate", "synthwave", "retro", "cyberpunk", "valentine", "halloween", "garden", "forest", "aqua", "lofi", "pastel", "fantasy", "wireframe", "black", "luxury", "dracula", "cmyk", "autumn", "business", "acid", "lemonade", "night", "coffee", "winter",]
 
 export const Header = () => {
     const { data: sessionData } = useSession()
 
+    useEffect(() => {
+        themeChange(false)
+        // 👆 false parameter is required for react project
+    }, [])
+
     return (
-        <div className="navbar bg-primary text-primary-content">
-            <div className="flex-1 pl-5 text-3xl font-bold">
-                {sessionData?.user?.name ? `Notes for ${sessionData.user.name}` : ''}
+        <div className="navbar bg-neutral text-neutral-content">
+            <div className="flex-1 pl-5 font-bold">
+                <select data-choose-theme className="w-full mr-5 text-xl max-w-fit select bg-accent text-accent-content ">
+                    <option value={''} selected>default</option>
+                    {themes.map(theme => (
+                        <option
+                            data-theme={theme}
+                            key={theme}
+                            value={theme}
+                        >
+                            {theme}
+                        </option>
+                    ))}
+                </select>
+                {sessionData?.user?.name ? <h1 className="text-3xl">{`Notes for ${sessionData.user.name}`}</h1> : ''}
             </div>
             <div className="flex-none gap-2">
                 <div className="dropdown-end dropdown">
