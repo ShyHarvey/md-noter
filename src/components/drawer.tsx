@@ -1,11 +1,14 @@
 import { type FC, type PropsWithChildren } from 'react'
 import { useSelectedTopic } from '~/store/topicStore'
 import { TopicsList } from './topics-list'
+import { signIn, useSession } from 'next-auth/react'
 
 const themes = ["light", "dark", "cupcake", "bumblebee", "emerald", "corporate", "synthwave", "retro", "cyberpunk", "valentine", "halloween", "garden", "forest", "aqua", "lofi", "pastel", "fantasy", "wireframe", "black", "luxury", "dracula", "cmyk", "autumn", "business", "acid", "lemonade", "night", "coffee", "winter",]
 
 
 export const Drawer: FC<PropsWithChildren<unknown>> = ({ children }) => {
+
+    const { data: sessionData } = useSession()
 
     const [selectedTopic, setSelectedTopic] = useSelectedTopic((state) => [state.selectedTopic, state.setSelectedTopic])
 
@@ -28,7 +31,7 @@ export const Drawer: FC<PropsWithChildren<unknown>> = ({ children }) => {
                 <label htmlFor="my-drawer" className="drawer-overlay"></label>
                 <div className="h-full p-4 menu w-80 bg-base-200">
                     <div className='flex justify-between'>
-                        <select data-choose-theme defaultValue={"light"} className="w-full mr-5 text-xl max-w-fit select bg-accent text-accent-content ">
+                        <select data-choose-theme defaultValue={"default"} className="w-full mr-5 text-xl max-w-fit select bg-accent text-accent-content ">
                             {themes.map(theme => (
                                 <option
                                     data-theme={theme}
@@ -45,8 +48,20 @@ export const Drawer: FC<PropsWithChildren<unknown>> = ({ children }) => {
                             </svg>
                         </label>
                     </div>
-                    <TopicsList selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
+                    {
+                        sessionData?.user ?
+                            <TopicsList className='mt-8' selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
+                            :
+                            <button
+                                className="mt-8 btn-primary btn-lg rounded-btn btn"
+                                onClick={() => void signIn()}
+                            >
+                                Sign in
+                            </button>
+                    }
                 </div>
+
+
             </div>
         </div>
     )

@@ -16,7 +16,7 @@ export const Header = () => {
     return (
         <div className="navbar bg-neutral text-neutral-content">
             <div className="flex-1 pl-5 font-bold">
-                <select data-choose-theme defaultValue={"light"} className="hidden w-full mr-5 text-xl max-w-fit select bg-accent text-accent-content lg:block ">
+                <select data-choose-theme defaultValue={"default"} className="hidden w-full mr-5 text-xl max-w-fit select bg-accent text-accent-content lg:block ">
                     {themes.map(theme => (
                         <option
                             data-theme={theme}

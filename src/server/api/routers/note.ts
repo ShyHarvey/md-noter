@@ -33,5 +33,5 @@ export const noteRouter = createTRPCRouter({
                     id: input.id
                 }
             })
-        })
+        }),
 });

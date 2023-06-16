@@ -7,15 +7,16 @@ import { api } from "~/utils/api";
 
 export const TopicsList = ({
     selectedTopic,
-    setSelectedTopic
+    setSelectedTopic,
+    className
 }: {
+    className?: string,
     selectedTopic: Topic | null,
     setSelectedTopic: (selectedTopic: Topic | null) => void
 }) => {
 
-
-
     const { data: sessionData } = useSession()
+
 
     const { data: topics, refetch: refetchTopics, isFetching: isTopicsFetching } = api.topic.getAll.useQuery(
         undefined,
@@ -37,12 +38,19 @@ export const TopicsList = ({
         }
     })
 
+    const deleteTopic = api.topic.delete.useMutation({
+        onSuccess: () => {
+            void refetchTopics()
+        }
+    })
+
     return (
-        <>
+        <div className={className}>
             <ul className="w-full gap-2 p-2 border menu border-accent rounded-box bg-base-100">
                 {topics?.map((topic) => (
-                    <li key={topic.id}>
+                    <li className="flex flex-row items-center justify-between flex-nowrap" key={topic.id}>
                         <Link
+                            className="w-full"
                             href={'#'}
                             onClick={(e) => {
                                 e.preventDefault()
@@ -51,6 +59,24 @@ export const TopicsList = ({
                         >
                             {topic.title}
                         </Link>
+                        <button
+                            disabled={deleteTopic.isLoading}
+                            className="btn btn-xs btn-square btn-warning"
+                            onClick={() => {
+                                deleteTopic.mutate({ id: topic.id })
+                                setSelectedTopic(null)
+                            }}
+                        >
+                            {
+                                deleteTopic.isLoading ?
+                                    <span className="mt-1 loading loading-xs" />
+                                    :
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                            }
+
+                        </button>
                     </li>
                 ))}
                 {isTopicsFetching && <div className="flex justify-center w-full"><div className="m-3 loading loading-bars loading-lg" /></div>}
@@ -62,7 +88,7 @@ export const TopicsList = ({
                 placeholder="New topic"
                 className="w-full input-bordered input input-accent input-sm"
                 onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                    if (e.key === "Enter" && e.currentTarget.value.length > 0) {
                         createTopic.mutate({
                             title: e.currentTarget.value
                         })
@@ -70,6 +96,6 @@ export const TopicsList = ({
                     }
                 }}
             />
-        </>
+        </div>
     )
 }
