@@ -3,16 +3,21 @@ import { useState } from 'react'
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown'
 
 import { type Note } from '@prisma/client'
+import { api } from '~/utils/api'
 
 export const NoteCard = ({
     note,
-    onDelete
+    onSuccessDelete
 }: {
     note: Note,
-    onDelete: () => void
+    onSuccessDelete: () => void
 }) => {
 
     const [isExpanded, setIsExpanded] = useState<boolean>(false)
+
+    const deleteNote = api.note.delete.useMutation({
+        onSuccess: onSuccessDelete
+    })
 
     return (
         <div className='mt-5 border shadow-xl card border-base-300 dg-base-100'>
@@ -31,7 +36,8 @@ export const NoteCard = ({
                     </div>
                 </div>
                 <div className='flex justify-end mx-2 card-action'>
-                    <button className='px-5 btn-warning btn-xs btn' onClick={onDelete}>
+                    <button disabled={deleteNote.isLoading || deleteNote.isSuccess} className='px-5 btn-warning btn-xs btn' onClick={() => deleteNote.mutate({ id: note.id })}>
+                        {(deleteNote.isLoading || deleteNote.isSuccess) && <span className='loading loading-xs' />}
                         Delete
                     </button>
                 </div>

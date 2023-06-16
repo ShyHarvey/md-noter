@@ -1,16 +1,23 @@
-import { type Topic } from "@prisma/client";
+
 import { type NextPage } from "next";
-import { useSession } from "next-auth/react";
 import Head from "next/head";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Header } from "~/components/header";
-import { NoteCard } from "~/components/note-card";
-import { NoteEditor } from "~/components/note-editor";
-import { api } from "~/utils/api";
+import { signIn, useSession } from "next-auth/react"
+import { Content } from "~/components/content";
+import { Layout } from "~/components/layout/layout";
 
 const Home: NextPage = () => {
 
+  const { data: sessionData, status } = useSession()
+
+  if (status === "loading") {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center w-full h-[calc(100vh-6rem)]">
+          <div className="loading loading-bars loading-lg" />
+        </div>
+      </Layout>
+    )
+  }
 
   return (
     <>
@@ -20,8 +27,20 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <Header />
-        <Content />
+        <Layout>
+          {sessionData?.user ?
+            <Content />
+            :
+            <div className="flex items-center justify-center h-[calc(100vh-6rem)]">
+              <button
+                className="btn-primary btn-lg rounded-btn btn"
+                onClick={() => void signIn()}
+              >
+                Sign in
+              </button>
+            </div>
+          }
+        </Layout>
       </main>
     </>
   );
@@ -29,107 +48,3 @@ const Home: NextPage = () => {
 
 export default Home;
 
-export const Content = () => {
-
-  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null)
-
-  const { data: sessionData } = useSession()
-
-  const { data: topics, refetch: refetchTopics } = api.topic.getAll.useQuery(
-    undefined,
-    {
-      enabled: sessionData?.user !== undefined,
-    }
-  );
-
-  useEffect(() => {
-    if (topics !== undefined) {
-      setSelectedTopic(selectedTopic ?? topics[0] ?? null)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topics])
-
-  const createTopic = api.topic.create.useMutation({
-    onSuccess: () => {
-      void refetchTopics()
-    }
-  })
-
-  const { data: notes, refetch: refetchNotes } = api.note.getAll.useQuery(
-    {
-      topicId: selectedTopic?.id ?? ""
-    },
-    {
-      enabled: sessionData?.user !== undefined && selectedTopic !== null
-    }
-  )
-
-  const createNote = api.note.create.useMutation({
-    onSuccess: () => {
-      void refetchNotes();
-    }
-  })
-  const deleteNote = api.note.delete.useMutation({
-    onSuccess: () => {
-      void refetchNotes();
-    }
-  })
-
-  return (
-    <div className="grid grid-cols-4 gap-2 px-5 pt-5">
-      <div className="px-2">
-        <ul className="w-full gap-2 p-2 border menu border-accent rounded-box bg-base-100">
-          {topics?.map((topic) => (
-            <li key={topic.id}>
-              <Link
-                href={'#'}
-                onClick={(e) => {
-                  e.preventDefault()
-                  setSelectedTopic(topic)
-                }}
-              >
-                {topic.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <div className="divider"></div>
-        <input
-          type="text"
-          placeholder="New topic"
-          className="w-full input-bordered input input-accent input-sm"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              createTopic.mutate({
-                title: e.currentTarget.value
-              })
-              e.currentTarget.value = ""
-            }
-          }}
-        />
-      </div>
-      <div className="col-span-3">
-        <p>{selectedTopic?.title}</p>
-        <div>
-          {notes?.map((note) => (
-            <div key={note.id} className="mt-5">
-              <NoteCard
-                note={note}
-                onDelete={() => void deleteNote.mutate({ id: note.id })}
-              />
-            </div>
-          ))}
-        </div>
-        <NoteEditor
-          onSave={({ title, content }) => {
-            void createNote.mutate({
-              title,
-              content,
-              topicId: selectedTopic?.id ?? ""
-            })
-          }}
-        />
-      </div>
-    </div>
-  )
-}
